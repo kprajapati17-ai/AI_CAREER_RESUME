@@ -1,0 +1,11 @@
+Full Details :
+
+pip install flask sqlalchemy pymysql openai PyPDF2 python-docx 
+
+VIRTUAL ENVIRONMENT CREATED 
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+
+TiDB Login
+1-setup
+2-database connection
