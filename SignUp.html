@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title%}Sign Up{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Create Account</h2>
+        <p class="sub-text">Discover your potential with CareerMind-AI</p>
+        <form action="/signup" method="post">
+            <label for="email">Email:</label>
+            <input type="email" id="email" placeholder="Enter your Email" name="email">
+            <label for="password">Password:</label>
+            <input type="password" id="password" placeholder="Enter your Password" name="password">
+            <p class="sub-text">Use atleast 6 characters</p>
+            <button type="submit">Sign Up</button>
+        </form>
+        <p class="switch-auth">Already have an account?<a href="/login">Log in here</a></p>
+    </div>
+</div>
+{% endblock %}
