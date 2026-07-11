@@ -57,11 +57,48 @@ def login():
     return render_template("login.html")
 
 
-@app.route("/dashboard")
+@app.route("/dashboard",method=["get","post"])
 def dashboard():
     if "user" not in session:
         return redirect("/login")
-    return render_template("dashboard.html")
+    return None
+    
+    if request.method =="POST":
+        user_goal = request.form.get("role")
+        resume_text = request.form.get("resume")
+
+        file = request.files.get("file")
+
+        if file and file.name != "":
+            if file.filename.endswith(".pdf"):
+                try:
+                    pdf_reader = PyPDF2.PdfReader(file.read())
+                    pdf_text = ""
+                    for page in pdf_reader.pages:
+                        pdf_text += page.extract_text() or ""
+                except Exception as e:
+                    return f"Error reading PDF: {str(e)}"
+            
+            elif file.filename.endswith(".docx"):
+                try:
+                    doc = docx.DocxFile(file)
+                    text = ""
+                    for para in doc.paragraphs:
+                        text += para.text + "\n"
+                    resume_text = text
+                except Exception as e:
+                    return f"Error reading docx: {str(e)}"
+
+        if resume_text and user_goal:
+            try:
+                result = analyze_resume(resume_text,user_goal)
+
+            except Exception as e:
+                return f"Error analyzing resume: {str(e)}"            
+
+
+        
+    
 
 @app.route("/logout")
 def logout():
