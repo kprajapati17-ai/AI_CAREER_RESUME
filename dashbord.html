@@ -1,64 +1,135 @@
 {% extends 'base.html' %}
 
+{% block title %}Dashboard | CareerMind-AI{% endblock %}
+
 {% block content %}
-<h1>Welcome,{{user}}</h1>
-<div class="card">
-    <h3>Resume Analyser</h3>
-    <form action="" method="post" enctype="multipart/form-data">
-        <textarea name="resyme" placeholder="Paste your Resume(Optional)"></textarea>
-        <p>Or upload File :</p>
-        <input type="file" name="file">
-        <input type="text" name="role" placeholder="What do you want to become?(e.g Backend Engineer,Data Analyst)"
-            required>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Input Form Card -->
+        <div class="card p-4 mb-4">
+            <h3 class="card-title mb-3">
+                <i class="bi bi-file-earmark-person-fill text-primary"></i> Resume Analyzer
+            </h3>
+            <p class="text-secondary">
+                Upload your resume (PDF/DOCX) or paste your resume text, specify your target job role, and get personalized career guidance instantly.
+            </p>
+            
+            <form action="/dashboard" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="resyme" class="form-label">Paste Your Resume (Optional)</label>
+                    <textarea class="form-control" id="resyme" name="resyme" rows="6" placeholder="Paste your resume content here..."></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="file" class="form-label">Or Upload Resume File (PDF / DOCX)</label>
+                    <input type="file" class="form-control" id="file" name="file" accept=".pdf,.docx">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="role" class="form-label">Target Job Role <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="role" name="role" placeholder="e.g. Python Developer, Data Analyst, Project Manager" required>
+                </div>
+                
+                <button type="submit" id="submitBtn" class="btn btn-primary w-100 py-2">
+                    <span id="btnText"><i class="bi bi-cpu-fill"></i> Analyze Resume</span>
+                    <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    <span id="loadingText" class="d-none"> Analyzing... Please wait...</span>
+                </button>
+            </form>
+        </div>
 
-        <button type="submit">Analyze</button>
-    </form>
+        <script>
+            document.querySelector('form').addEventListener('submit', function() {
+                const btn = document.getElementById('submitBtn');
+                const text = document.getElementById('btnText');
+                const spinner = document.getElementById('btnSpinner');
+                const loading = document.getElementById('loadingText');
+                
+                // Disable button and show spinner
+                btn.disabled = true;
+                text.classList.add('d-none');
+                spinner.classList.remove('d-none');
+                loading.classList.remove('d-none');
+            });
+        </script>
 
+        <!-- Analysis Results Card -->
+        {% if result %}
+        <div class="card p-4 mb-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-50">
+                <h3 class="mb-2 text-primary">
+                    <i class="bi bi-graph-up-arrow"></i> Analysis Results
+                </h3>
+                {% if has_report %}
+                <div>
+                    <a href="/download_pdf" class="btn btn-primary btn-sm">
+                        <i class="bi bi-file-pdf"></i> Download PDF Report
+                    </a>
+                </div>
+                {% endif %}
+            </div>
 
+            <!-- 1. Current Skills -->
+            <div class="mb-4">
+                <h5 class="text-info"><i class="bi bi-check-circle-fill"></i> Current Skills</h5>
+                <div class="d-flex flex-wrap mt-2">
+                    {% for skill in result.get("current_skills", []) %}
+                    <span class="badge-skill">{{ skill }}</span>
+                    {% else %}
+                    <p class="text-secondary small">No skills identified in the resume.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 2. Missing Skills -->
+            <div class="mb-4">
+                <h5 class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Missing Skills</h5>
+                <div class="d-flex flex-wrap mt-2">
+                    {% for skill in result.get("missing_skills", []) %}
+                    <span class="badge-missing">{{ skill }}</span>
+                    {% else %}
+                    <p class="text-secondary small">None identified (resume matches role requirements well).</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 3. Skill Gap Analysis -->
+            <div class="mb-4">
+                <h5 class="text-indigo" style="color: #a5b4fc;"><i class="bi bi-intersect"></i> Skill Gap Analysis</h5>
+                <div class="p-3 bg-dark bg-opacity-25 rounded mt-2 border border-secondary border-opacity-50">
+                    <p class="mb-0 text-light">{{ result.get("gap_analysis", "") }}</p>
+                </div>
+            </div>
+
+            <!-- 4. Learning Roadmap -->
+            <div class="mb-4">
+                <h5 class="text-primary"><i class="bi bi-signpost-split-fill"></i> Learning Roadmap</h5>
+                <ul class="roadmap-list mt-3">
+                    {% for item in result.get("roadmap", []) %}
+                    <li class="roadmap-item">
+                        <div class="text-light">{{ item }}</div>
+                    </li>
+                    {% else %}
+                    <li class="text-secondary">No roadmap details generated.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- 5. Resume Improvement Suggestions -->
+            <div class="mb-2">
+                <h5 class="text-success"><i class="bi bi-lightbulb-fill"></i> Resume Improvement Suggestions</h5>
+                <ul class="list-group list-group-flush bg-transparent mt-2">
+                    {% for item in result.get("suggestions", []) %}
+                    <li class="list-group-item bg-transparent text-light border-0 px-0 py-2">
+                        <i class="bi bi-arrow-right-short text-success"></i> {{ item }}
+                    </li>
+                    {% else %}
+                    <li class="list-group-item bg-transparent text-secondary border-0 px-0">No suggestions generated.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
-
-{% if result %}
-<div class="red">
-    {% if result.error %}
-    <p style="color: red;"> Error :{{result.error}}</p>
-    {%endif%}
-
-    <h3>Skills</h3>
-    <ul>
-        {%for s in result.get("skills",[])%}
-        <li>
-            {{ s }}
-        </li>
-        {%endfor%}
-    </ul>
-
-    <h3>Missing Skills</h3>
-    <ul>
-        {%for s in result.get("skills",[])%}
-        <li>
-            {{ s }}
-        </li>
-        {%endfor%}
-    </ul>
-
-    <h3>Roadmap</h3>
-    <ul>
-        {%for s in result.get("roadmap",[])%}
-        <li>
-            {{ s }}
-        </li>
-        {%endfor%}
-    </ul>
-
-    <h3>Interview Questions List</h3>
-    <ul>
-        {%for s in result.get("Interview_Questions",[])%}
-        <li>
-            {{ s }}
-        </li>
-        {%endfor%}
-    </ul>
-
-</div>
-{% endif %}
 {% endblock %}
